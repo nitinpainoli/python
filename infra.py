@@ -6,53 +6,53 @@ print("Installing eksctl")
 cmd = 'ls -la'
 os.system(cmd)
 
-# install_eksctl()
-# install_kubectl()
-# install_aws()
+install_eksctl()
+install_kubectl()
+install_aws()
 configure_aws_auth()
 
 
-# def install_eksctl():
-#     install_dir = "/usr/local/bin"
-#     cmd2_result = subprocess.run(["uname", "-s"], stdout=subprocess.PIPE, text=True)
-#     cmd2_stdout = cmd2_result.stdout.strip()  
+def install_eksctl():
+    install_dir = "/usr/local/bin"
+    cmd2_result = subprocess.run(["uname", "-s"], stdout=subprocess.PIPE, text=True)
+    cmd2_stdout = cmd2_result.stdout.strip()  
 
-#     eksctl_url = f"https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_{cmd2_stdout}_amd64.tar.gz"
+    eksctl_url = f"https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_{cmd2_stdout}_amd64.tar.gz"
  
-#     eksctl_path = os.path.join(install_dir, "eksctl")
+    eksctl_path = os.path.join(install_dir, "eksctl")
 
-#     try:
-#         subprocess.run(["curl", "-Lo", eksctl_path, eksctl_url], check=True)
+    try:
+        subprocess.run(["curl", "-Lo", eksctl_path, eksctl_url], check=True)
 
-#         subprocess.run(["tar", "-xvzf", eksctl_path], check=True)
+        subprocess.run(["tar", "-xvzf", eksctl_path], check=True)
 
-#         subprocess.run(["chmod", "+x", eksctl_path], check=True)
+        subprocess.run(["chmod", "+x", eksctl_path], check=True)
 
-#         subprocess.run(["mv", "eksctl", eksctl_path], check=True)
+        subprocess.run(["mv", "eksctl", eksctl_path], check=True)
 
-#         print("eksctl installed successfully")
-#     except Exception as e:
-#         print(f"Error: {str(e)}")
-#         sys.exit(1)
-
-
-# def install_kubectl():
-#     install_dir = "/usr/local/bin"
-
-#     kubectl_url = "https://dl.k8s.io/release/v1.28.2/bin/linux/amd64/kubectl" 
-#     kubectl_path = os.path.join(install_dir, "kubectl")
-#     print(kubectl_path)
-#     try:
-#         subprocess.run(["curl", "-Lo", kubectl_path, kubectl_url], check=True)
+        print("eksctl installed successfully")
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        sys.exit(1)
 
 
-#         subprocess.run(["chmod", "+x", kubectl_path], check=True)
+def install_kubectl():
+    install_dir = "/usr/local/bin"
+
+    kubectl_url = "https://dl.k8s.io/release/v1.28.2/bin/linux/amd64/kubectl" 
+    kubectl_path = os.path.join(install_dir, "kubectl")
+    print(kubectl_path)
+    try:
+        subprocess.run(["curl", "-Lo", kubectl_path, kubectl_url], check=True)
 
 
-#         print("kubectl installed successfully")
-#     except Exception as e:
-#         print(f"Error: {str(e)}")
-#         sys.exit(1)
+        subprocess.run(["chmod", "+x", kubectl_path], check=True)
+
+
+        print("kubectl installed successfully")
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        sys.exit(1)
 
 def install_aws():
     try:
@@ -129,7 +129,4 @@ def configure_aws_auth():
 
     except subprocess.CalledProcessError as e:
         print(f"Error configuring AWS authentication: {e}")
-    #os.system(eks_auth)
-    # print("update kubeconfig")
-    # kubec_config = aws eks update-kubeconfig "--region " + region "--name " + cluster_name
-    # os.system(kube_config)
+
