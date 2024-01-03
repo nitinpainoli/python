@@ -6,10 +6,7 @@ print("Installing eksctl")
 cmd = 'ls -la'
 os.system(cmd)
 
-install_eksctl()
-install_kubectl()
-install_aws()
-configure_aws_auth()
+
 
 
 def install_eksctl():
@@ -81,52 +78,59 @@ def install_aws():
         print(f"An error occurred: {str(e)}")
 
 
-def configure_aws_auth():
-    if len(sys.argv) != 3:
-        print("Usage: python script.py <cluster_name> <region>")
-        return
+# def configure_aws_auth():
+#     if len(sys.argv) != 3:
+#         print("Usage: python script.py <cluster_name> <region>")
+#         return
 
-    cluster_name = sys.argv[1]
-    region = sys.argv[2]
+#     cluster_name = sys.argv[1]
+#     region = sys.argv[2]
 
-    arn = "arn:aws:iam::825727885535:role/internal_aws_media_production_3762_TTN-AdminUser"
-    username = "cicd"
-    group = "system:masters"
+#     arn = "arn:aws:iam::825727885535:role/internal_aws_media_production_3762_TTN-AdminUser"
+#     username = "cicd"
+#     group = "system:masters"
 
-    cmd = [
-        "eksctl",
-        "create",
-        "iamidentitymapping",
-        "--cluster",
-        cluster_name,
-        "--region",
-        region,
-        "--arn",
-        arn,
-        "--username",
-        username,
-        "--group",
-        group,
-        "--no-duplicate-arns",
-    ]
+#     cmd = [
+#         "eksctl",
+#         "create",
+#         "iamidentitymapping",
+#         "--cluster",
+#         cluster_name,
+#         "--region",
+#         region,
+#         "--arn",
+#         arn,
+#         "--username",
+#         username,
+#         "--group",
+#         group,
+#         "--no-duplicate-arns",
+#     ]
     
-    cmd2 = [
-        "aws",
-        "eks",
-        "update-kubeconfig",
-        "--name",
-        cluster_name,
-        "--region",
-        region,
-    ]
+#     cmd2 = [
+#         "aws",
+#         "eks",
+#         "update-kubeconfig",
+#         "--name",
+#         cluster_name,
+#         "--region",
+#         region,
+#     ]
 
-    try:
-        subprocess.run(cmd, check=True)
-        print("AWS authentication configured successfully.")
+#     try:
+#         subprocess.run(cmd, check=True)
+#         print("AWS authentication configured successfully.")
 
-        subprocess.run(cmd2, check=True)
-        print("kubectl configured successfully.")
+#         subprocess.run(cmd2, check=True)
+#         print("kubectl configured successfully.")
 
-    except subprocess.CalledProcessError as e:
-        print(f"Error configuring AWS authentication: {e}")
+#     except subprocess.CalledProcessError as e:
+#         print(f"Error configuring AWS authentication: {e}")
 
+
+install_eksctl()
+install_kubectl()
+install_aws()
+# configure_aws_auth()
+
+mongodb:x:114:65534::/home/mongodb:/usr/sbin/nologin
