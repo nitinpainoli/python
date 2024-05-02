@@ -133,4 +133,3 @@ install_kubectl()
 install_aws()
 # configure_aws_auth()
 
-mongodb:x:114:65534::/home/mongodb:/usr/sbin/nologin
