@@ -43,54 +43,81 @@ def create_volume_from_snapshot(snapshot_id, region, availability_zone):
     except Exception as e:
         print("Error creating volume from snapshot:", e)
 
-def attach_volume(instance_id, snapshot_id, device_name, region, availability_zone):
+
+def instance_stop(instance_id, region):
     ec2_client = boto3.client('ec2')
-    volume_id = create_volume_from_snapshot(snapshot_id, region, availability_zone)
-    try:
-        response = ec2_client.describe_volumes(VolumeIds=[volume_id])
-        attachments = response['Volumes'][0]['Attachments']
-        if attachments:
-            print("Volume is already attached. Detaching...")
-            ec2_client.detach_volume(VolumeId=volume_id)
-            print("Volume detached successfully.")
-        while True:
+    ec2_client.stop_instances(InstanceIds=[instance_id])
+    print("Instance is stopping...")
+    waiter = ec2_client.get_waiter('instance_stopped')
+    waiter.wait(InstanceIds=[instance_id])
+
+
+
+
+def attach_volume(instance_id, volume_id, device_name, region, availability_zone, volume_id_new):
+    ec2_client = boto3.client('ec2')
+ 
+    response = ec2_client.describe_instances(InstanceIds=[instance_id])
+    state = response['Reservations'][0]['Instances'][0]['State']['Name']
+    if state == 'stopped':
+        try:
+            
+            print(volume_id)
             response = ec2_client.describe_volumes(VolumeIds=[volume_id])
-            volume_state = response['Volumes'][0]['State']
-            if volume_state == 'available':
-                break
-            print("Volume is not available. Waiting...")
-            time.sleep(30)
+            attachments = response['Volumes'][0]['Attachments']
+            
+            instance_info = ec2_client.describe_instances(InstanceIds=[instance_id])
 
-        response = ec2_client.attach_volume(
-            Device=device_name,
-            InstanceId=instance_id,
-            VolumeId=volume_id,
-        )
-        print("Volume attached successfully:", response)
-    except Exception as e:
-        print("Error attaching volume:", e)
+            if attachments:
+                root_volume = [volume for volume in instance_info['Reservations'][0]['Instances'][0]['BlockDeviceMappings'] if volume['DeviceName'] == '/dev/xvda'][0]
+                root_volume_id = root_volume['Ebs']['VolumeId']
+                ec2_client.detach_volume(VolumeId=root_volume_id)
+                
+                print("Volume detached successfully.")
+            while True:
+                response = ec2_client.describe_volumes(VolumeIds=[volume_id])
+                volume_state = response['Volumes'][0]['State']
+                if volume_state == 'available':
+                    break
+                print("Volume is not available. Waiting...")
+                time.sleep(30)
 
-
-
+            response = ec2_client.attach_volume(
+                Device=device_name,
+                InstanceId=instance_id,
+                VolumeId=volume_id_new,
+            )
+            print("Volume attached successfully:", response)
+        except Exception as e:
+            print("Error attaching volume:", e)
+   
 def main():
+    instance_id = 'i-0ed4ac5b495eac69e'
+    device_name = '/dev/xvda'  
     volume_id = 'vol-067d413e4bc8fcae7'
     region = 'ap-southeast-1'
     availability_zone = 'ap-southeast-1b'
+    
+
 
     snapshot_id = create_snapshot(volume_id, region)
+    print(snapshot_id)
 
     if snapshot_id:
-        volume_id = create_volume_from_snapshot(snapshot_id, region, availability_zone)
-        if volume_id:
-            print("Volume created successfully:", volume_id)
+        volume_id_new = create_volume_from_snapshot(snapshot_id, region, availability_zone)
+        if volume_id_new:
+            print("Volume created successfully:", volume_id_new)
         else:
             print("Failed to create volume from snapshot.")
     else:
         print("Failed to create snapshot.")
 
-    instance_id = 'i-0ed4ac5b495eac69e	'
-    device_name = '/dev/xvdf'  
-    attach_volume(instance_id, snapshot_id, device_name, region, availability_zone)
+
+    instance_stop(instance_id, region)
+    
+    
+    attach_volume(instance_id, volume_id, device_name, region, availability_zone,volume_id_new)
+
 
 if __name__ == "__main__":
     main()
