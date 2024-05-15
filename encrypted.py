@@ -54,7 +54,7 @@ def instance_stop(instance_id, region):
 
 
 
-def attach_volume(instance_id, volume_id, device_name, region, availability_zone, volume_id_new):
+def attach_volume(instance_id, volume_id,device_name, region, availability_zone, volume_id_new):
     ec2_client = boto3.client('ec2')
  
     response = ec2_client.describe_instances(InstanceIds=[instance_id])
@@ -91,33 +91,67 @@ def attach_volume(instance_id, volume_id, device_name, region, availability_zone
         except Exception as e:
             print("Error attaching volume:", e)
    
+
+
 def main():
-    instance_id = 'i-0ed4ac5b495eac69e'
+    #instance_id = 'i-0ed4ac5b495eac69e'
     device_name = '/dev/xvda'  
-    volume_id = 'vol-067d413e4bc8fcae7'
+    #volume_id = 'vol-067d413e4bc8fcae7'
     region = 'ap-southeast-1'
     availability_zone = 'ap-southeast-1b'
+    ec2 = boto3.client('ec2', region_name=region)
+
+
+    response = ec2.describe_instances(Filters=[
+        {'Name': 'tag:Environment', 'Values': ['scripttest']}
+    ])
+
+    instance_ids = []
+
+    for reservation in response['Reservations']:
+        for instance in reservation['Instances']:
+            
+            instance_id = instance['InstanceId']
+            instance_ids.append(instance_id)
+     
+    print(instance_ids)
     
+    volume_ids = []
+    for instance in instance_ids:
+            instance_info = ec2.describe_instances(InstanceIds=[instance])
+            print(instance)
+            root_volume = [volume for volume in instance_info['Reservations'][0]['Instances'][0]['BlockDeviceMappings'] if volume['DeviceName'] == '/dev/xvda'][0]
+            root_volume_id = root_volume['Ebs']['VolumeId']
+            print(root_volume_id)
+            #volume_ids.append(root_volume_id)
+
+    for instance_id in instance_ids:
+        instance_info = ec2.describe_instances(InstanceIds=[instance_id])
+        instance = instance_info['Reservations'][0]['Instances'][0] 
+        print(instance_id)
+        availability_zone = instance['Placement']['AvailabilityZone']
+        print(availability_zone)
+        snapshot_id = create_snapshot(root_volume_id, region)
+        
+        print(snapshot_id)
 
 
-    snapshot_id = create_snapshot(volume_id, region)
-    print(snapshot_id)
-
-    if snapshot_id:
-        volume_id_new = create_volume_from_snapshot(snapshot_id, region, availability_zone)
-        if volume_id_new:
-            print("Volume created successfully:", volume_id_new)
+        if snapshot_id:
+            volume_id_new = create_volume_from_snapshot(snapshot_id, region, availability_zone)
+            if volume_id_new:
+                print("Volume created successfully:", volume_id_new)
+            else:
+                print("Failed to create volume from snapshot.")
         else:
-            print("Failed to create volume from snapshot.")
-    else:
-        print("Failed to create snapshot.")
+            print("Failed to create snapshot.")
 
 
-    instance_stop(instance_id, region)
+        instance_stop(instance_id, region)
+        
+        
+        attach_volume(instance_id, root_volume_id, device_name, region, availability_zone,volume_id_new)
+
+
     
-    
-    attach_volume(instance_id, volume_id, device_name, region, availability_zone,volume_id_new)
-
-
 if __name__ == "__main__":
     main()

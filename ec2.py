@@ -1,4 +1,4 @@
-import boto3
+    import boto3
 
 def get_instances_and_root_volumes(key, value):
     ec2 = boto3.client('ec2')
